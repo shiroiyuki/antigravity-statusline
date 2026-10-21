@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PYTHON_BIN="${PYTHON_BIN:-${HOME}/gemini_py3_env/bin/python}"
+if [ ! -x "$PYTHON_BIN" ]; then
+    PYTHON_BIN="$(which python3 2>/dev/null || which python 2>/dev/null)"
+fi
+
+TARGET="${SCRIPT_DIR}/../scripts/subagent_audit.py"
+if [ ! -f "$TARGET" ]; then
+    TARGET="${SCRIPT_DIR}/subagent_audit.py"
+fi
+if [ ! -f "$TARGET" ]; then
+    TARGET="${HOME}/.gemini/config/skills/token-audit/scripts/subagent_audit.py"
+fi
+
+exec "$PYTHON_BIN" "$TARGET" "$@"
