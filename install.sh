@@ -30,10 +30,9 @@ if [ -d "${HOME}/gemini_py3_env/bin" ]; then
     ln -sf "${REPO_DIR}/bin/subagent-audit" "${HOME}/gemini_py3_env/bin/agent-audit"
 fi
 
-# 3. Update settings.json if present
-if [ -f "$SETTINGS_FILE" ]; then
-    echo "• Updating Antigravity configuration in ${SETTINGS_FILE}..."
-    python3 -c "
+# 3. Create or update settings.json
+echo "• Updating Antigravity configuration in ${SETTINGS_FILE}..."
+python3 -c "
 import json, os
 
 path = os.path.expanduser('$SETTINGS_FILE')
@@ -53,7 +52,6 @@ with open(path, 'w', encoding='utf-8') as f:
     json.dump(cfg, f, indent=2, ensure_ascii=False)
 print('  ✓ Antigravity settings.json updated successfully.')
 "
-fi
 
 echo "=========================================================="
 echo "  ✅ Installation Complete!"
