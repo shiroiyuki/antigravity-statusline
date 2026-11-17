@@ -133,9 +133,6 @@ def get_parent_sessions(db_path: str) -> List[Dict[str, Any]]:
 def resolve_target_session(db_path: str, session_arg: Optional[str]) -> Optional[str]:
     """Resolves target parent session ID via flag, env, or most recent parent session."""
     parents = get_parent_sessions(db_path)
-    if not parents:
-        return None
-
     if session_arg:
         arg_low = session_arg.lower().strip()
         for p in parents:
@@ -148,6 +145,10 @@ def resolve_target_session(db_path: str, session_arg: Optional[str]) -> Optional
         for p in parents:
             if p["parent_id"] == env_id:
                 return env_id
+        return env_id
+
+    if not parents:
+        return None
 
     # Fallback to the most recent parent session with subagents
     return parents[0]["parent_id"]
@@ -398,26 +399,38 @@ def audit_session_subagents(
 
     parent_title = "Active Conversation"
     sub_rows = []
-    try:
-        conn = sqlite3.connect(f"file:{db_path}?mode=ro", uri=True)
-        c = conn.cursor()
-        c.execute("SELECT title, preview FROM conversation_summaries WHERE conversation_id = ?", (target_parent_id,))
-        p_row = c.fetchone()
-        if p_row and (p_row[0] or p_row[1]):
-            parent_title = p_row[0] or p_row[1]
+    if os.path.isfile(db_path):
+        try:
+            conn = sqlite3.connect(f"file:{db_path}?mode=ro", uri=True)
+            c = conn.cursor()
+            c.execute("SELECT title, preview FROM conversation_summaries WHERE conversation_id = ?", (target_parent_id,))
+            p_row = c.fetchone()
+            if p_row and (p_row[0] or p_row[1]):
+                parent_title = p_row[0] or p_row[1]
 
-        c.execute("""
-            SELECT 
-                conversation_id, agent_name, status, not_fully_idle, killed, 
-                step_count, last_modified_time, title, preview
-            FROM conversation_summaries
-            WHERE parent_conversation_id = ?
-            ORDER BY last_modified_time ASC
-        """, (target_parent_id,))
-        sub_rows = c.fetchall()
-        conn.close()
-    except Exception:
-        pass
+            c.execute("""
+                SELECT 
+                    conversation_id, agent_name, status, not_fully_idle, killed, 
+                    step_count, last_modified_time, title, preview
+                FROM conversation_summaries
+                WHERE parent_conversation_id = ?
+                ORDER BY last_modified_time ASC
+            """, (target_parent_id,))
+            sub_rows = c.fetchall()
+            conn.close()
+        except Exception:
+            pass
+
+    seen_sub_ids = {row[0] for row in sub_rows}
+    if target_parent_id:
+        seen_sub_ids.add(target_parent_id)
+    if main_meta.get("agent_invocations"):
+        for s_id, inv in main_meta.get("id_to_invocation", {}).items():
+            if s_id in seen_sub_ids:
+                continue
+            sub_t_path = os.path.join(brain_dir, s_id, ".system_generated", "logs", "transcript.jsonl")
+            if os.path.isfile(sub_t_path):
+                sub_rows.append((s_id, inv.get("type_name") or "subagent", "CASCADE_RUN_STATUS_IDLE", 0, 0, 0, None, "", ""))
 
     subagents = []
     total_sub_tokens = 0

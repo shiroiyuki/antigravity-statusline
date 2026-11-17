@@ -1,5 +1,7 @@
 # Antigravity Statusline & Multi-Agent Telemetry Dashboard
 
+[![CI & Release Flow](https://github.com/shiroiyuki/antigravity-statusline/actions/workflows/ci.yml/badge.svg)](https://github.com/shiroiyuki/antigravity-statusline/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/shiroiyuki/antigravity-statusline)](https://github.com/shiroiyuki/antigravity-statusline/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Python: 3.9+](https://img.shields.io/badge/Python-3.9%2B-brightgreen.svg)](#)
 [![Shell: Bash](https://img.shields.io/badge/Shell-Bash-orange.svg)](#)
@@ -34,14 +36,15 @@ Quota: 5h 94% [4h35m] | Wk 28% [3d23h] | Session: 1.48M (in: 1.30M / out: 177.9k
 
 ## ✨ Key Features
 
-1. **Dynamic Model & Quota Tracking**:
-   - Automatically switches between **Google Gemini** (`gemini-5h`, `gemini-weekly`) and **Anthropic Claude / 3P** (`3p-5h`, `3p-weekly`) quota buckets depending on the active model.
-   - Streamlined display with time-to-reset countdowns (e.g. `[4h35m]`, `[3d23h]`).
+1. **Dynamic Model, Multi-Pool Quota & AGY 1.5.9+ Telemetry**:
+   - Displays all available quota pools side-by-side (**Gemini**, **Argon (Pro)**, and **Claude (3P)**) with color-coded health thresholds and `*` highlighting the active model's pool, putting `Quota:` on its own dedicated line when multiple pools are present for clean readability.
+   - Supports both legacy (`gemini-5h`, `3p-5h`) and dynamic/list `StatusLineQuotaBucket` keys with `remaining_fraction` or `remaining_percentage` and reset countdowns.
+   - Surfaces native AGY 1.5.9+ payload fields when provided: Git `branch` / `dirty` badge, `effort` level, `exceeds_200k_tokens` (`!200k`), `cost` / `subagent_usd`, and `transcript_path`.
 
-2. **Hierarchical Multi-Agent Token Tree**:
+2. **Hierarchical Multi-Agent Token Tree (with DB-less Fallback)**:
    - Live process indicators: `Tasks: running/total | Agents: running/total`.
-   - Displays Main session coordinator and **Top 3 Token-Consuming Subagents** with granular `(in / out)` counts.
-   - If more than 3 subagents exist, summarizes remaining agents without cluttering terminal space (`(+N 隻累計 ...)`).
+   - Reads `conversation_summaries.db` and automatically falls back to `invoke_subagent` `conversationId` entries in `transcript.jsonl` if the SQLite summary DB has not been created yet.
+   - Displays Main session coordinator and **Top 3 Token-Consuming Subagents** with granular `(in / out)` counts; summarizes remaining agents (`(+N 隻累計 ...)`).
 
 3. **Prompt Cache Savings & Hit Rate (快取節省量與命中率)**:
    - Tracks actual tokens saved via prompt caching and computes exact hit rates (`saved: 25.92M [95.0%]`).
@@ -66,7 +69,7 @@ Quota: 5h 94% [4h35m] | Wk 28% [3d23h] | Session: 1.48M (in: 1.30M / out: 177.9k
 Clone the repository and run the installer:
 
 ```bash
-git clone https://github.com/<your-username>/antigravity-statusline.git
+git clone https://github.com/shiroiyuki/antigravity-statusline.git
 cd antigravity-statusline
 ./install.sh
 ```
@@ -152,10 +155,12 @@ architect              |        1 |        65.6k |           65.6k |      65.6k 
 
 ## 🧪 Testing
 
-Run unit tests covering formatting, calculations, and CJK width handling:
+Run syntax checks and unit tests covering statusline rendering (including AGY 1.5.9+ fields), efficiency calculations, and CJK width handling:
 
 ```bash
-python3 -m unittest tests/test_subagent_audit.py
+python3 -m compileall -q scripts tests
+bash -n bin/statusline.sh bin/subagent-audit install.sh
+python3 -m unittest discover -s tests -v
 ```
 
 ---
