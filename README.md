@@ -10,26 +10,27 @@
 
 A high-performance, real-time terminal statusline and multi-agent token telemetry engine tailored for [Google Antigravity (AGY)](https://github.com/google/antigravity).
 
-Features dynamic provider quota switching (Gemini vs. Claude 3P), subagent process tracking, prompt cache savings calculation, and hierarchical multi-agent token breakdown.
+Features multi-pool quota visibility (**Gemini**, **Argon (Pro)**, and **Claude (3P)**), AGY 1.5.9+ native telemetry (`branch`/`dirty`, `effort`, `cost`, `transcript_path`), subagent process tracking, prompt cache savings calculation, and hierarchical multi-agent token breakdown.
 
 ---
 
 ## 📸 Preview
 
-### Multi-Agent Mode (Subagents Active)
+### Multi-Pool Quota & Multi-Agent Mode (Subagents Active)
 
 ```text
-[~/arch_test] [Gemini 3.8 Flash (High)] Context: [=---------] 11.0% (115.2k/1.05M | Cache 95.0%) | ? for shortcuts
-Quota: 5h 94% [4h35m] | Wk 28% [3d23h] | Session: 1.55M (主 1.48M / 子 65.6k | saved: 25.92M [95.0%]) | Tasks: 0/4 | Agents: 0/1
+[~/arch_test (main*)] [Gemini 4 Argon (Medium)] Context: [=---------] 11.0% (115.2k/1.05M | Cache 95.0%) | ? for shortcuts
+Quota: Gemini 5h 95% [4h0m] · Wk 88%  |  *Argon 5h 72% [2h10m] · Wk 64%  |  Claude 5h 60% [1h30m] · Wk 45%
+Session: 1.55M (主 1.48M / 子 65.6k | saved: 25.92M [95.0%]) | Tasks: 0/4 | Agents: 0/1
   ├─ [Main] 1.48M (in: 1.30M / out: 177.9k | saved: 25.85M [95.2%])
   └─ [architect: JPEG Codec Architect] 65.6k (in: 50.9k / out: 14.7k | saved: 65.6k [56.3%])
 ```
 
-### Single Agent Mode (Clean 2-Line Layout)
+### Single-Pool & Single-Agent Mode (Clean 2-Line Layout)
 
 ```text
-[~/arch_test] [Gemini 3.8 Flash (High)] Context: [=---------] 11.0% (115.2k/1.05M | Cache 95.0%) | ? for shortcuts
-Quota: 5h 94% [4h35m] | Wk 28% [3d23h] | Session: 1.48M (in: 1.30M / out: 177.9k | saved: 25.85M [95.2%]) | Tasks: 0/0 | Agents: 0/0
+[~/arch_test] [Gemini 4 Hydrogen (High)] Context: [=---------] 11.0% (115.2k/1.05M | Cache 95.0%) | ? for shortcuts
+Quota: Gemini 5h 94% [4h35m] · Wk 28% [3d23h] | Session: 1.48M (in: 1.30M / out: 177.9k | saved: 25.85M [95.2%]) | Tasks: 0/0 | Agents: 0/0
 ```
 
 ---
